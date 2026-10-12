@@ -16,14 +16,20 @@ withDefaults(defineProps<{
    * gathers at the bottom, and the shoot brief is dropped on narrow screens.
    */
   compact?: boolean
+  /** Show the whole photo instead of cropping it to fill the frame. */
+  contain?: boolean
 }>(), {
   priority: false,
-  compact: false
+  compact: false,
+  contain: false
 })
 </script>
 
 <template>
-  <div class="relative overflow-hidden bg-sand-200">
+  <div
+    class="relative overflow-hidden"
+    :class="{ 'bg-sand-200': !contain || !photo.src }"
+  >
     <img
       v-if="photo.src"
       :src="photo.src"
@@ -34,7 +40,8 @@ withDefaults(defineProps<{
       :fetchpriority="priority ? 'high' : undefined"
       decoding="async"
       draggable="false"
-      class="absolute inset-0 size-full object-cover"
+      class="absolute inset-0 size-full"
+      :class="contain ? 'object-contain' : 'object-cover'"
       :style="{ objectPosition: photo.position }"
     >
 
@@ -54,7 +61,7 @@ withDefaults(defineProps<{
       </p>
 
       <div>
-        <p class="font-display text-xl leading-none font-bold text-sand-950 uppercase sm:text-2xl">
+        <p class="text-base leading-tight font-semibold tracking-tight text-sand-950 sm:text-lg">
           {{ photo.title }}
         </p>
         <p

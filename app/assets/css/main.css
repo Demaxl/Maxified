@@ -15,10 +15,13 @@
   --text-headline--line-height: 0.9;
   --text-headline--letter-spacing: -0.005em;
 
-  /* Chapter titles and the smaller display moments. */
-  --text-title: clamp(2rem, 3.2vw, 2.75rem);
-  --text-title--line-height: 0.92;
-  --text-title--letter-spacing: 0;
+  /*
+   * Supporting headings: Inter, sentence case, semibold. The condensed face is kept
+   * for the hero and section headlines so those statements stay distinct.
+   */
+  --text-heading: clamp(1.5rem, 2.2vw, 1.875rem);
+  --text-heading--line-height: 1.15;
+  --text-heading--letter-spacing: -0.02em;
 
   /* Small uppercase labels. Used sparingly. */
   --text-label: 0.75rem;

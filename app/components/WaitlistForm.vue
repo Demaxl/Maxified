@@ -94,7 +94,7 @@ const t = computed(() => tones[props.tone])
       </span>
 
       <p
-        class="mt-5 font-display text-3xl leading-none font-bold uppercase"
+        class="mt-5 text-heading font-semibold"
         :class="t.heading"
         role="status"
       >

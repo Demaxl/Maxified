@@ -8,7 +8,7 @@ const { track } = useAnalytics()
     class="bg-sand-100 py-14 sm:py-16"
   >
     <div class="shell grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-x-10">
-      <h2 class="font-display text-title font-bold text-sand-950 uppercase lg:col-span-5">
+      <h2 class="text-heading font-semibold text-sand-950 lg:col-span-5">
         Help shape MAXIFIED.
       </h2>
 

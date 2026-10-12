@@ -177,7 +177,7 @@ defineExpose({
         :id="titleId"
         ref="heading"
         tabindex="-1"
-        class="rounded-[2px] text-2xl leading-tight font-semibold tracking-[-0.015em] text-balance text-sand-950 sm:text-[1.75rem]"
+        class="rounded-[2px] text-heading font-semibold text-balance text-sand-950"
       >
         {{ question.title }}
       </h2>

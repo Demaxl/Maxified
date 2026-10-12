@@ -10,6 +10,7 @@ type AnalyticsEvent
     | 'survey_submit'
     | 'survey_success'
     | 'survey_error'
+    | 'photo_zoom'
 
 type AnalyticsProps = Record<string, string | number | boolean>
 

@@ -30,7 +30,7 @@ const familiarProblems = [
             <span class="bg-sand-950 px-2 py-1 text-sand-50">01</span>
             Then
           </p>
-          <h3 class="mt-4 font-display text-title leading-none font-bold text-sand-950 uppercase">
+          <h3 class="mt-4 text-heading font-semibold text-sand-950">
             Where I started
           </h3>
         </header>
@@ -38,7 +38,7 @@ const familiarProblems = [
         <PhotoCarousel
           :slides="photos.gallery.then"
           label="Photos from when I started"
-          :tag="{ text: 'Then', class: 'bg-sand-950 text-sand-50' }"
+          :tag="{ text: 'Then', class: 'bg-sand-950 text-sand-50', onDark: 'bg-sand-50 text-sand-950' }"
           class="reveal lg:col-span-6 lg:col-start-1 lg:row-span-2 lg:row-start-1"
         />
 
@@ -48,7 +48,7 @@ const familiarProblems = [
             why nothing changed.
           </p>
 
-          <h4 class="mt-8 font-display text-xl leading-none font-bold text-sand-950 uppercase">
+          <h4 class="mt-8 text-base font-semibold text-sand-950">
             Sound familiar?
           </h4>
           <ul class="mt-3">
@@ -92,7 +92,7 @@ const familiarProblems = [
             <span class="bg-lime-400 px-2 py-1 text-sand-950">02</span>
             Now
           </p>
-          <h3 class="mt-4 font-display text-title leading-none font-bold text-sand-950 uppercase">
+          <h3 class="mt-4 text-heading font-semibold text-sand-950">
             Where I am now
           </h3>
         </header>

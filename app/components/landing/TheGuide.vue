@@ -47,7 +47,7 @@ const chapters = [
           <p class="text-label font-semibold text-sand-700 uppercase tabular-nums">
             Part 0{{ index + 1 }}
           </p>
-          <h3 class="mt-3 font-display text-title font-bold text-sand-950 uppercase">
+          <h3 class="mt-3 text-heading font-semibold text-sand-950">
             {{ chapter.word }}
           </h3>
           <p class="mt-3 text-base leading-relaxed text-sand-800">

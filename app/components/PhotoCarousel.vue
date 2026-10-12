@@ -5,8 +5,11 @@ const props = defineProps<{
   slides: PhotoEntry[]
   /** Accessible name for the carousel, e.g. "Photos from when I started". */
   label: string
-  /** Text and colour classes for the tag pinned to the top corner of the frame. */
-  tag: { text: string, class: string }
+  /**
+   * Text and colour classes for the tag pinned to the top corner of the frame.
+   * `onDark` replaces the colours in the full-screen viewer, if they'd vanish there.
+   */
+  tag: { text: string, class: string, onDark?: string }
 }>()
 
 const slides = computed(() => props.slides)
@@ -71,6 +74,94 @@ useResizeObserver(track, sync)
 const counter = computed(() =>
   `${String(active.value + 1).padStart(2, '0')} / ${String(slides.value.length).padStart(2, '0')}`
 )
+
+/*
+ * Touch and trackpads scroll the track natively. A mouse has no horizontal swipe, so
+ * dragging is handled here, with snapping paused until the pointer is released and
+ * the track then settling on the nearest slide.
+ */
+const dragging = ref(false)
+let dragStartX = 0
+let dragStartScroll = 0
+let dragMoved = false
+
+function onPointerDown(event: PointerEvent) {
+  if (event.pointerType !== 'mouse' || event.button !== 0 || !track.value) {
+    return
+  }
+
+  dragStartX = event.clientX
+  dragStartScroll = track.value.scrollLeft
+  dragMoved = false
+  dragging.value = true
+}
+
+function onPointerMove(event: PointerEvent) {
+  const el = track.value
+
+  if (!dragging.value || !el) {
+    return
+  }
+
+  const distance = event.clientX - dragStartX
+
+  if (!dragMoved && Math.abs(distance) > 6) {
+    dragMoved = true
+    el.setPointerCapture(event.pointerId)
+    // Set inline rather than via a class: the class lands a render later, and until
+    // then mandatory snapping pulls every scrollLeft write back to the current slide.
+    el.style.scrollSnapType = 'none'
+  }
+
+  if (dragMoved) {
+    el.scrollLeft = dragStartScroll - distance
+  }
+}
+
+function onPointerUp() {
+  if (!dragging.value) {
+    return
+  }
+
+  dragging.value = false
+
+  if (dragMoved && track.value) {
+    sync()
+    track.value.style.scrollSnapType = ''
+    goTo(active.value)
+  }
+}
+
+/** A drag ends with a click on whichever slide is under the pointer; it shouldn't open the viewer. */
+function onClickCapture(event: MouseEvent) {
+  if (dragMoved) {
+    event.preventDefault()
+    event.stopPropagation()
+    dragMoved = false
+  }
+}
+
+const { track: trackEvent } = useAnalytics()
+const zoomOpen = ref(false)
+const zoomIndex = ref(0)
+const zoomItems = computed(() => slides.value.map(slide => ({ photo: slide, label: slide.title })))
+
+/** Titles are optional, so screen-reader names fall back to the alt text. */
+function slideName(slide: PhotoEntry) {
+  return slide.title || slide.alt
+}
+
+function openZoom(index: number) {
+  zoomIndex.value = index
+  zoomOpen.value = true
+  trackEvent('photo_zoom', { photo: index + 1, from: props.label })
+}
+
+watch(zoomOpen, (isOpen) => {
+  if (!isOpen) {
+    goTo(zoomIndex.value)
+  }
+})
 </script>
 
 <template>
@@ -78,25 +169,49 @@ const counter = computed(() =>
     aria-roledescription="carousel"
     :aria-label="label"
     class="min-w-0"
+    @keydown.left="step(-1)"
+    @keydown.right="step(1)"
   >
     <div class="relative">
       <div
         ref="track"
         class="relative flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
+        :class="{ 'cursor-grabbing select-none': dragging }"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerUp"
+        @click.capture="onClickCapture"
       >
         <div
           v-for="(slide, index) in slides"
-          :key="slide.title"
+          :key="index"
           role="group"
           aria-roledescription="slide"
-          :aria-label="`${index + 1} of ${slides.length}: ${slide.title}`"
+          :aria-label="`${index + 1} of ${slides.length}: ${slideName(slide)}`"
           class="w-[82%] shrink-0 snap-start sm:w-[72%]"
         >
-          <EditorialPhoto
-            :photo="slide"
-            compact
-            class="aspect-4/5 w-full"
-          />
+          <button
+            type="button"
+            class="relative block w-full cursor-zoom-in focus-visible:-outline-offset-2"
+            :aria-label="`Enlarge photo ${index + 1}: ${slideName(slide)}`"
+            @click="openZoom(index)"
+          >
+            <EditorialPhoto
+              :photo="slide"
+              compact
+              class="aspect-4/5 w-full"
+            />
+            <span
+              aria-hidden="true"
+              class="absolute top-3 right-3 flex size-9 items-center justify-center bg-sand-50/90 text-sand-950 ring-1 ring-sand-950/15 sm:top-4 sm:right-4 sm:size-10"
+            >
+              <UIcon
+                name="i-lucide-maximize-2"
+                class="size-4"
+              />
+            </span>
+          </button>
         </div>
       </div>
 
@@ -116,7 +231,7 @@ const counter = computed(() =>
         aria-atomic="true"
       >
         <span class="mr-3 text-label font-semibold text-sand-700 tabular-nums">{{ counter }}</span>
-        <span class="font-display text-lg font-bold text-sand-950 uppercase">{{ slides[active]?.title }}</span>
+        <span class="font-semibold text-sand-950">{{ slides[active]?.title }}</span>
       </p>
 
       <div class="flex shrink-0 gap-2">
@@ -146,5 +261,24 @@ const counter = computed(() =>
         </button>
       </div>
     </div>
+
+    <PhotoLightbox
+      v-model:open="zoomOpen"
+      v-model:index="zoomIndex"
+      :items="zoomItems"
+      :title="label"
+    >
+      <template #controls="{ counter: zoomCounter }">
+        <p class="flex items-center gap-3">
+          <span
+            class="px-2.5 py-1.5 font-display text-xl leading-none font-bold uppercase"
+            :class="tag.onDark ?? tag.class"
+          >
+            {{ tag.text }}
+          </span>
+          <span class="text-label font-semibold text-sand-300 uppercase tabular-nums">{{ zoomCounter }}</span>
+        </p>
+      </template>
+    </PhotoLightbox>
   </section>
 </template>

@@ -140,7 +140,7 @@ onMounted(restore)
               class="size-5 text-sand-950"
             />
           </span>
-          <p class="mt-5 font-display text-3xl leading-none font-bold text-sand-950 uppercase">
+          <p class="mt-5 text-heading font-semibold text-sand-950">
             You're already on the waitlist{{ joined.firstName ? `, ${joined.firstName}` : '' }}.
           </p>
           <p class="mt-3 text-base leading-relaxed text-sand-800">
@@ -157,7 +157,7 @@ onMounted(restore)
         </div>
 
         <div v-else>
-          <p class="font-display text-3xl leading-none font-bold text-sand-950 uppercase">
+          <p class="text-heading font-semibold text-sand-950">
             One last thing — want early access?
           </p>
           <p class="mt-3 mb-7 text-base leading-relaxed text-sand-800">
@@ -190,7 +190,7 @@ onMounted(restore)
           <SlashLabel :parts="['Help Shape', brand.name]" />
           <p
             aria-hidden="true"
-            class="mt-4 font-display text-title font-bold text-sand-950 uppercase"
+            class="mt-4 text-heading font-semibold text-sand-950"
           >
             Tell me what you're actually struggling with.
           </p>

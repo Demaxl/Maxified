@@ -3,8 +3,8 @@ const { track } = useAnalytics()
 </script>
 
 <template>
-  <section class="flex flex-col bg-sand-100 pt-16 [--split:0.4] lg:split-bleed">
-    <div class="shell pt-8 pb-12 sm:pt-12 sm:pb-16 lg:col-start-2 lg:mx-0 lg:max-w-none lg:self-center lg:px-0 lg:py-16 lg:pr-12 xl:pr-14">
+  <section class="flex flex-col bg-sand-100 pt-16 [--split:0.4] lg:split-bleed lg:grid-rows-[1fr_auto_auto_1fr]">
+    <div class="shell pt-8 sm:pt-12 lg:col-start-2 lg:row-start-2 lg:mx-0 lg:max-w-none lg:px-0 lg:pt-16 lg:pr-12 xl:pr-14">
       <p class="text-label font-semibold text-sand-700 uppercase">
         A downloadable fitness guide by Maxi
       </p>
@@ -18,8 +18,15 @@ const { track } = useAnalytics()
         Four years of training, nutrition, mistakes, and lessons—everything I wish I knew when I
         started.
       </p>
+    </div>
 
-      <div class="mt-7 flex flex-wrap items-center gap-x-7 gap-y-4">
+    <TransformationPair
+      priority
+      class="shell mt-7 sm:mt-10 lg:col-span-2 lg:col-start-3 lg:row-span-4 lg:row-start-1 lg:mx-0 lg:mt-0 lg:max-w-none lg:self-start lg:px-0"
+    />
+
+    <div class="shell pt-6 pb-12 sm:pt-8 sm:pb-16 lg:col-start-2 lg:row-start-3 lg:mx-0 lg:max-w-none lg:self-start lg:px-0 lg:pt-7 lg:pr-12 lg:pb-16 xl:pr-14">
+      <div class="flex flex-wrap items-center gap-x-7 gap-y-4">
         <AppButton
           to="/#waitlist"
           size="lg"
@@ -46,10 +53,5 @@ const { track } = useAnalytics()
         In development. The waitlist gets early access and a launch discount.
       </p>
     </div>
-
-    <TransformationPair
-      priority
-      class="order-first lg:order-none lg:col-span-2 lg:col-start-3 lg:self-start"
-    />
   </section>
 </template>
