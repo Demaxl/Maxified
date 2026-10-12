@@ -39,37 +39,64 @@ export default defineAppConfig({
       title: 'Current progress photo',
       brief: 'Same pose, distance and light as the early photo, so the two crops compare honestly.'
     },
-    /** The story section's carousel of current-physique photos, in display order. */
-    gallery: [
-      {
-        src: '',
-        alt: 'Maxi in a white tank and black trousers against a plain backdrop',
-        position: 'center 20%',
-        title: 'Editorial portrait',
-        brief: 'Waist-up or three-quarter length. Neutral backdrop, warm side light, white tank, black trousers. Face and physique both visible.'
-      },
-      {
-        src: '',
-        alt: 'Maxi from the back, showing back and shoulder development',
-        position: 'center 30%',
-        title: 'Back',
-        brief: 'Relaxed back pose against the same backdrop and light as the portrait.'
-      },
-      {
-        src: '',
-        alt: 'Maxi side-on in an open shirt',
-        position: 'center 25%',
-        title: 'Side profile',
-        brief: 'Side-on, open shirt, relaxed stance. Warm directional light from the front.'
-      },
-      {
-        src: '',
-        alt: 'Maxi training',
-        position: 'center 35%',
-        title: 'Training',
-        brief: 'Mid-set or between sets, natural light. Real session, not staged.'
-      }
-    ]
+    /** The story section's two carousels, each in display order. Add or remove entries freely. */
+    gallery: {
+      /** Where I started: genuine photos from the early days, unedited. */
+      then: [
+        {
+          src: '',
+          alt: 'Maxi from the front at the start of training',
+          position: 'center 25%',
+          title: 'Early front',
+          brief: 'A real photo from when you started. A mirror selfie or casual snap is fine. Unedited.'
+        },
+        {
+          src: '',
+          alt: 'Maxi side-on at the start of training',
+          position: 'center 25%',
+          title: 'Early side',
+          brief: 'Side-on, from the same period. Unedited.'
+        },
+        {
+          src: '',
+          alt: 'Maxi in the first months of training',
+          position: 'center 30%',
+          title: 'Early days',
+          brief: 'Any other genuine photo from your first months, at the gym or in everyday clothes.'
+        }
+      ],
+      /** Where I am now: the current physique. */
+      now: [
+        {
+          src: '',
+          alt: 'Maxi in a white tank and black trousers against a plain backdrop',
+          position: 'center 20%',
+          title: 'Editorial portrait',
+          brief: 'Waist-up or three-quarter length. Neutral backdrop, warm side light, white tank, black trousers. Face and physique both visible.'
+        },
+        {
+          src: '',
+          alt: 'Maxi from the back, showing back and shoulder development',
+          position: 'center 30%',
+          title: 'Back',
+          brief: 'Relaxed back pose against the same backdrop and light as the portrait.'
+        },
+        {
+          src: '',
+          alt: 'Maxi side-on in an open shirt',
+          position: 'center 25%',
+          title: 'Side profile',
+          brief: 'Side-on, open shirt, relaxed stance. Warm directional light from the front.'
+        },
+        {
+          src: '',
+          alt: 'Maxi training',
+          position: 'center 35%',
+          title: 'Training',
+          brief: 'Mid-set or between sets, natural light. Real session, not staged.'
+        }
+      ]
+    }
   },
   ui: {
     colors: {

@@ -1,6 +1,15 @@
 <script setup lang="ts">
-const { photos } = useAppConfig()
-const slides = computed(() => photos.gallery)
+import type { PhotoEntry } from './EditorialPhoto.vue'
+
+const props = defineProps<{
+  slides: PhotoEntry[]
+  /** Accessible name for the carousel, e.g. "Photos from when I started". */
+  label: string
+  /** Text and colour classes for the tag pinned to the top corner of the frame. */
+  tag: { text: string, class: string }
+}>()
+
+const slides = computed(() => props.slides)
 
 const track = useTemplateRef<HTMLElement>('track')
 const active = ref(0)
@@ -67,26 +76,37 @@ const counter = computed(() =>
 <template>
   <section
     aria-roledescription="carousel"
-    aria-label="Photos of my current physique"
+    :aria-label="label"
     class="min-w-0"
   >
-    <div
-      ref="track"
-      class="relative flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
-    >
+    <div class="relative">
       <div
-        v-for="(slide, index) in slides"
-        :key="slide.title"
-        role="group"
-        aria-roledescription="slide"
-        :aria-label="`${index + 1} of ${slides.length}: ${slide.title}`"
-        class="w-[82%] shrink-0 snap-start sm:w-[72%]"
+        ref="track"
+        class="relative flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
       >
-        <EditorialPhoto
-          :photo="slide"
-          class="aspect-4/5 w-full"
-        />
+        <div
+          v-for="(slide, index) in slides"
+          :key="slide.title"
+          role="group"
+          aria-roledescription="slide"
+          :aria-label="`${index + 1} of ${slides.length}: ${slide.title}`"
+          class="w-[82%] shrink-0 snap-start sm:w-[72%]"
+        >
+          <EditorialPhoto
+            :photo="slide"
+            compact
+            class="aspect-4/5 w-full"
+          />
+        </div>
       </div>
+
+      <p
+        aria-hidden="true"
+        class="pointer-events-none absolute top-3 left-3 px-2.5 py-1.5 font-display text-xl leading-none font-bold uppercase sm:top-4 sm:left-4 sm:px-3 sm:py-2 sm:text-2xl"
+        :class="tag.class"
+      >
+        {{ tag.text }}
+      </p>
     </div>
 
     <div class="mt-4 flex items-center justify-between gap-4 border-t border-sand-950/15 pt-3">
@@ -103,7 +123,7 @@ const counter = computed(() =>
         <button
           type="button"
           class="inline-flex size-11 items-center justify-center rounded-[3px] border border-sand-950/30 text-sand-950 transition-colors hover:border-sand-950 aria-disabled:cursor-default aria-disabled:border-sand-950/15 aria-disabled:text-sand-400"
-          aria-label="Previous photo"
+          :aria-label="`Previous: ${label}`"
           :aria-disabled="atStart || undefined"
           @click="step(-1)"
         >
@@ -115,7 +135,7 @@ const counter = computed(() =>
         <button
           type="button"
           class="inline-flex size-11 items-center justify-center rounded-[3px] border border-sand-950/30 text-sand-950 transition-colors hover:border-sand-950 aria-disabled:cursor-default aria-disabled:border-sand-950/15 aria-disabled:text-sand-400"
-          aria-label="Next photo"
+          :aria-label="`Next: ${label}`"
           :aria-disabled="atEnd || undefined"
           @click="step(1)"
         >

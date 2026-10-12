@@ -50,7 +50,8 @@ never shows a stand-in image as if it were Maxi. To fill a slot, add the file to
 | --- | --- | --- | --- |
 | `then` | Hero, left of the before/after pair — the first thing visitors see | 2:3 portrait | Your earliest real photo. Set `taken` to the real date, e.g. `March 2021`. |
 | `now` | Hero, right of the pair | 2:3 portrait | Same pose, distance and light as `then` so the comparison is honest. Set `taken`. |
-| `gallery[]` | Story section carousel of your current physique | 4:5 | One entry per slide, in order; add or remove entries freely. Neutral backdrop, warm side light, white tank or open shirt, black trousers. Tune `position` if a crop cuts your face. |
+| `gallery.then[]` | Story section, "Where I started" carousel | 4:5 | Genuine photos from when you started, unedited. Mirror selfies and casual snaps are fine. One entry per slide, in order; add or remove entries freely. |
+| `gallery.now[]` | Story section, "Where I am now" carousel | 4:5 | One entry per slide, in order; add or remove entries freely. Neutral backdrop, warm side light, white tank or open shirt, black trousers. Tune `position` if a crop cuts your face. |
 
 Once both `then` and `now` have real photos, a short "My own progress photos. Individual results
 vary." caption appears under the pair.

@@ -15,7 +15,7 @@ const { track } = useAnalytics()
       </h1>
 
       <p class="mt-5 max-w-md text-lg leading-relaxed text-sand-800 sm:mt-7">
-        Five years of training, nutrition, mistakes, and lessons—everything I wish I knew when I
+        Four years of training, nutrition, mistakes, and lessons—everything I wish I knew when I
         started.
       </p>
 

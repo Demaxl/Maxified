@@ -2,7 +2,7 @@
 const { brand } = useAppConfig()
 const { siteUrl } = useRuntimeConfig().public
 
-const description = `${brand.name} is a downloadable fitness guide by Maxi: five years of training, nutrition, mistakes and lessons. It's in development — join the waitlist for early access and an exclusive launch discount.`
+const description = `${brand.name} is a downloadable fitness guide by Maxi: four years of training, nutrition, mistakes and lessons. It's in development — join the waitlist for early access and an exclusive launch discount.`
 
 useSeoMeta({
   title: brand.tagline,
