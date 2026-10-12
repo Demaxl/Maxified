@@ -136,9 +136,29 @@ their place.
 ## Connecting an email service
 
 [`server/utils/email.ts`](server/utils/email.ts) defines an `EmailProvider` contract and a no-op
-default, so nothing is sent until you wire a provider up. To add one:
+default, so nothing is sent until a provider is configured. New waitlist signups (from the
+waitlist form or the survey's opt-in) are added to the provider's list; the app itself sends no
+email.
 
-1. Implement `EmailProvider` for your service (Resend, Loops, Mailchimp, ConvertKit).
+### Resend
+
+1. In Resend, create a segment for the waitlist (and a separate one for testing) and copy its
+   segment ID from Audience → Segments → ⋯ → Copy Segment ID.
+2. Create an API key with **Full access** — a sending-only key can't create contacts.
+3. Set:
+
+   ```bash
+   NUXT_EMAIL_PROVIDER=resend
+   NUXT_EMAIL_API_KEY=re_...
+   NUXT_EMAIL_AUDIENCE_ID=<segment id>
+   ```
+
+Each signup becomes a contact (email and first name) in that segment. Someone who is already a
+contact is added to the segment instead. Use the test segment and your own address locally.
+
+### Other services
+
+1. Implement `EmailProvider` for your service (Loops, Mailchimp, Kit).
 2. Return it from `resolveProvider()` for the matching `NUXT_EMAIL_PROVIDER` value.
 3. Set `NUXT_EMAIL_PROVIDER`, `NUXT_EMAIL_API_KEY` and `NUXT_EMAIL_AUDIENCE_ID` in your
    environment.
