@@ -1,7 +1,7 @@
 # MAXIFIED — waitlist & research landing page
 
 A mobile-first Nuxt 4 landing page for an upcoming fitness guide. It has two independent
-conversions: joining the early-access waitlist (primary) and completing an 8-question research
+conversions: joining the early-access waitlist (primary) and completing a 15-question research
 survey (secondary). Neither one requires the other, and there are no accounts or logins.
 
 ## Stack
@@ -125,6 +125,10 @@ reordering or rewording a question there updates the wizard, the progress indica
 server-side validation at once — no other file needs touching. Supported question types are
 `single`, `multi` (with an optional `maxSelections` cap) and `text`, plus `allowOther` for a
 free-text "Other" option and `followUp` for a conditional follow-up question.
+
+Question ids are the keys answers are stored under. When a question's meaning or options change,
+give it a new id instead of reusing the old one, so earlier responses keep their own keys and
+never mix with the new answers. No database migration is needed either way.
 
 Answers are drafted to `localStorage` as people progress, so refreshing mid-survey doesn't lose
 their place.

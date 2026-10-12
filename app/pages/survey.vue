@@ -94,8 +94,8 @@ watch(phase, async (value) => {
 })
 
 useSeoMeta({
-  title: 'The short survey',
-  description: `Eight quick questions about where you are in your fitness journey and what you'd want from the ${brand.name} guide.`,
+  title: 'Fitness guide research survey',
+  description: `${stepCount} questions about where you are in your fitness journey and what you'd want from the ${brand.name} guide.`,
   robots: 'noindex'
 })
 
@@ -195,7 +195,7 @@ onMounted(restore)
             Tell me what you're actually struggling with.
           </p>
           <p class="mt-3 text-sm leading-relaxed text-sand-700">
-            8 quick questions, no email needed. Anything marked optional can be left blank.
+            {{ stepCount }} questions, no email needed. Anything marked optional can be left blank.
           </p>
         </header>
 

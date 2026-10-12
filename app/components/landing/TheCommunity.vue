@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { surveyStepCount } from '#shared/survey'
+
 const { track } = useAnalytics()
 </script>
 
@@ -24,7 +26,7 @@ const { track } = useAnalytics()
           class="mt-6"
           @click="track('survey_start', { from: 'community_section' })"
         >
-          Take the 8-question survey
+          Take the {{ surveyStepCount }}-question survey
           <template #trailing>
             <UIcon
               name="i-lucide-arrow-right"

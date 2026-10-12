@@ -1,4 +1,4 @@
-import { isQuestionAnswered, surveyAnswerKeys, surveyQuestions, surveyStepCount } from '#shared/survey'
+import { hasKnownChoices, isQuestionAnswered, surveyAnswerKeys, surveyQuestions, surveyStepCount } from '#shared/survey'
 import type { SurveyAnswers } from '#shared/survey'
 import type { SurveyResult } from '#shared/schemas/survey'
 
@@ -51,14 +51,19 @@ export function useSurvey() {
   }
 
   /**
-   * A draft saved before the questions changed can hold keys the server no longer
-   * accepts, which would fail validation on submit with nothing the visitor can do
-   * about it. Anything outside the current question set is dropped on load.
+   * A draft saved before the questions changed can hold keys or choices the server no
+   * longer accepts, which would fail validation on submit with nothing the visitor can
+   * do about it. Anything outside the current question set is dropped on load.
    */
   function sanitise(answers: SurveyAnswers = {}): SurveyAnswers {
-    return Object.fromEntries(
+    const kept: SurveyAnswers = Object.fromEntries(
       Object.entries(answers).filter(([key]) => surveyAnswerKeys.includes(key))
     )
+    const invalid = new Set(
+      surveyQuestions.filter(question => !hasKnownChoices(question, kept)).map(question => question.id)
+    )
+
+    return Object.fromEntries(Object.entries(kept).filter(([key]) => !invalid.has(key)))
   }
 
   function readDraft() {
@@ -72,7 +77,12 @@ export function useSurvey() {
       const draft = JSON.parse(raw) as Draft
 
       answers.value = sanitise(draft.answers)
-      stepIndex.value = Math.min(Math.max(draft.stepIndex ?? 0, 0), surveyStepCount - 1)
+
+      // Resume no later than the first unanswered question, in case the draft's step
+      // now sits past a question that was added or reset.
+      const savedStep = Math.min(Math.max(draft.stepIndex ?? 0, 0), surveyStepCount - 1)
+      const firstGap = surveyQuestions.findIndex(question => !isQuestionAnswered(question, answers.value))
+      stepIndex.value = firstGap === -1 ? savedStep : Math.min(savedStep, firstGap)
     } catch {
       window.localStorage.removeItem(DRAFT_KEY)
     }

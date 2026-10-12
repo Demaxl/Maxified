@@ -51,63 +51,117 @@ const options = (...labels: string[]): SurveyOption[] =>
   }))
 
 /**
- * Eight questions, one per step. Question ids are the storage keys, so renaming one
- * starts a new series rather than rewriting history: responses from earlier versions
- * of the survey keep whatever keys they were saved with.
+ * One question per step. Question ids are the storage keys, so a question whose
+ * meaning or options change gets a new id rather than reusing an old one: responses
+ * from earlier versions of the survey keep the keys they were saved with, and old and
+ * new answers never mix under the same key. Retired ids, for reference when reading
+ * older responses: `obstacles`, `training_location`, `program_wishlist`.
  */
 export const surveyQuestions: SurveyQuestion[] = [
   {
+    id: 'physique',
+    type: 'single',
+    title: 'Which best describes your current physique?',
+    allowOther: true,
+    options: options(
+      'Skinny',
+      'Skinny-fat',
+      'Average',
+      'Overweight',
+      'Muscular but want to get leaner'
+    )
+  },
+  {
     id: 'goal',
     type: 'single',
-    title: 'What is your main fitness goal?',
+    title: 'What is your main fitness goal right now?',
     allowOther: true,
     options: options(
       'Build muscle',
       'Lose fat',
       'Build muscle and lose fat',
       'Gain weight',
-      'Get stronger'
+      'Get stronger',
+      'Look more athletic/aesthetic',
+      'Improve general health/fitness'
     )
   },
   {
     id: 'experience',
     type: 'single',
-    title: 'How long have you been consistently training?',
-    options: options(
-      'Haven\'t started',
-      'Less than 3 months',
-      '3–6 months',
-      '6–12 months',
-      'More than a year'
-    )
+    title: 'How long have you been consistently working out?',
+    options: [
+      // Same value as the earlier survey's "Haven't started", so the two stay comparable.
+      { value: 'haven_t_started', label: 'I haven\'t started yet' },
+      ...options(
+        'Less than 3 months',
+        '3–6 months',
+        '6–12 months',
+        '1–2 years',
+        'More than 2 years'
+      )
+    ]
   },
   {
-    id: 'obstacles',
+    id: 'blockers',
     type: 'multi',
-    maxSelections: 2,
-    title: 'What is your biggest obstacle right now?',
-    helper: 'Choose up to 2.',
+    title: 'What\'s the biggest thing stopping you from achieving the physique you want?',
+    helper: 'Choose all that apply.',
     allowOther: true,
     options: options(
-      'Not knowing what workouts to do',
-      'Nutrition confusion',
-      'Consistency',
-      'Food costs',
-      'Limited time',
-      'Limited equipment or gym access',
-      'Not seeing progress'
+      'I don\'t know what workouts to do',
+      'I don\'t know how to eat for my goal',
+      'I struggle with consistency',
+      'I don\'t know whether to bulk, cut or maintain',
+      'I don\'t know how much protein/calories I need',
+      'Healthy/high-protein food is too expensive',
+      'I don\'t have enough time',
+      'I don\'t have access to a good gym',
+      'I struggle to gain weight',
+      'I struggle to lose fat',
+      'I don\'t see progress despite training',
+      'There\'s too much conflicting fitness information online'
     )
   },
   {
-    id: 'training_location',
+    id: 'most_confusing',
     type: 'single',
-    title: 'Where would you train?',
+    title: 'Which part of fitness confuses you the most?',
+    allowOther: true,
     options: options(
-      'Commercial gym',
-      'Small or local gym',
-      'Home with equipment',
-      'Home with little or no equipment',
-      'Not sure yet'
+      'Training/workout programming',
+      'Nutrition',
+      'Calories/macros',
+      'Supplements',
+      'Bulking/cutting',
+      'Progressive overload',
+      'Recovery/sleep',
+      'Staying consistent',
+      'Tracking progress'
+    )
+  },
+  {
+    id: 'already_tried',
+    type: 'text',
+    multiline: true,
+    optional: true,
+    title: 'What have you already tried to achieve your fitness goal?',
+    placeholder: 'Programs, diets, apps, anything — what did you try, and how did it go?'
+  },
+  {
+    id: 'consistency_breakers',
+    type: 'single',
+    title: 'What usually causes you to stop being consistent?',
+    allowOther: true,
+    options: options(
+      'Lack of motivation',
+      'Not seeing results',
+      'School/work',
+      'Cost',
+      'Diet is difficult to maintain',
+      'Workouts take too long',
+      'I don\'t know whether what I\'m doing is working',
+      'Injuries/discomfort'
     )
   },
   {
@@ -123,27 +177,79 @@ export const surveyQuestions: SurveyQuestion[] = [
     ]
   },
   {
-    id: 'program_wishlist',
+    id: 'usual_training_location',
+    type: 'single',
+    title: 'Where do you usually train?',
+    options: options(
+      'Commercial gym',
+      'Small/local gym',
+      'Home with equipment',
+      'Home with little/no equipment',
+      'I don\'t currently train'
+    )
+  },
+  {
+    id: 'guide_wishlist',
     type: 'multi',
-    maxSelections: 3,
-    title: 'What would you most want from this program?',
-    helper: 'Choose up to 3 — this directly shapes what I build.',
+    maxSelections: 5,
+    title: 'What would you most want included in a fitness guide?',
+    helper: 'Choose up to 5.',
     allowOther: true,
     options: options(
-      'Workout plans',
-      'Exercise demonstrations',
-      'Nutrition guidance',
-      'Affordable meal ideas',
-      'Calorie and protein guidance',
-      'Help deciding whether to bulk, cut, or recomp',
-      'Progress trackers',
-      'Consistency advice'
+      'Complete workout programs',
+      'Exercise tutorials',
+      'How to build muscle',
+      'How to lose fat',
+      'How to go from skinny-fat to muscular',
+      'How to bulk without getting too fat',
+      'How to cut without losing muscle',
+      'Meal plans',
+      'Nigerian meal ideas',
+      'Affordable high-protein foods',
+      'Calorie/protein calculation',
+      'Supplements',
+      'Progress tracking',
+      'Staying consistent/motivated',
+      'Mistakes to avoid',
+      'My personal transformation/process'
+    )
+  },
+  {
+    id: 'burning_question',
+    type: 'text',
+    multiline: true,
+    optional: true,
+    title: 'What\'s one fitness question you wish someone would just give you a straightforward answer to?',
+    placeholder: 'Ask me anything, and I\'ll try to answer it in the guide.'
+  },
+  {
+    id: 'one_result',
+    type: 'text',
+    multiline: true,
+    optional: true,
+    title: 'If you could achieve ONE fitness result over the next 6–12 months, what would it be?',
+    placeholder: 'Be as specific as you like.'
+  },
+  {
+    id: 'info_sources',
+    type: 'single',
+    title: 'Where do you currently get most of your fitness information?',
+    allowOther: true,
+    options: options(
+      'TikTok',
+      'Instagram',
+      'YouTube',
+      'X/Twitter',
+      'Friends',
+      'Personal trainer',
+      'Fitness websites/blogs',
+      'I don\'t really consume fitness content'
     )
   },
   {
     id: 'paid_before',
     type: 'single',
-    title: 'Have you paid for a fitness program, guide, or coaching before?',
+    title: 'Have you ever paid for a fitness program, guide or coaching before?',
     options: [
       { value: 'yes', label: 'Yes' },
       { value: 'no', label: 'No' }
@@ -151,18 +257,16 @@ export const surveyQuestions: SurveyQuestion[] = [
     followUp: {
       id: 'paid_before_details',
       when: 'yes',
-      title: 'What did you buy, and what was useful or missing?',
+      title: 'What did you buy, and was it worth it? Why or why not?',
       placeholder: 'Optional, but really useful to know.'
     }
   },
   {
-    id: 'burning_question',
+    id: 'price_expectation',
     type: 'text',
-    multiline: true,
     optional: true,
-    title: 'What\'s one fitness question you wish someone would answer clearly?',
-    helper: 'Optional — leave it blank if nothing comes to mind.',
-    placeholder: 'Ask me anything, and I\'ll try to answer it in the program.'
+    title: 'How much would you realistically consider paying for a detailed fitness guide that included workout programs, nutrition guidance, meal ideas and progress-tracking resources?',
+    placeholder: 'Your honest answer, in any currency.'
   }
 ]
 
@@ -212,6 +316,27 @@ export function isQuestionAnswered(question: SurveyQuestion, answers: SurveyAnsw
   }
 
   return true
+}
+
+/** Rejects choices the question doesn't offer, such as a value from an older version of it. */
+export function hasKnownChoices(question: SurveyQuestion, answers: SurveyAnswers) {
+  const value = answers[question.id]
+
+  if (question.type === 'text' || value === undefined) {
+    return true
+  }
+
+  const allowed = new Set(question.options.map(option => option.value))
+
+  if (question.allowOther) {
+    allowed.add(OTHER_VALUE)
+  }
+
+  if (question.type === 'multi') {
+    return Array.isArray(value) && value.every(choice => allowed.has(choice))
+  }
+
+  return typeof value === 'string' && allowed.has(value)
 }
 
 export function asText(value: SurveyAnswerValue | undefined) {

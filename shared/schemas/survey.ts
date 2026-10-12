@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { emailField, firstNameField } from './waitlist'
-import { isQuestionAnswered, surveyAnswerKeys, surveyQuestions } from '../survey'
+import { hasKnownChoices, isQuestionAnswered, surveyAnswerKeys, surveyQuestions } from '../survey'
 import type { SurveyAnswers } from '../survey'
 
 const answerValueSchema = z.union([
@@ -12,6 +12,10 @@ const answersSchema = z
   .record(z.string(), answerValueSchema)
   .refine(
     answers => Object.keys(answers).every(key => surveyAnswerKeys.includes(key)),
+    'Unexpected survey answer'
+  )
+  .refine(
+    answers => surveyQuestions.every(question => hasKnownChoices(question, answers as SurveyAnswers)),
     'Unexpected survey answer'
   )
   .refine(
