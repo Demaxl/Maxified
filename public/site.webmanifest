@@ -1,0 +1,11 @@
+{
+  "name": "MAXIFIED",
+  "short_name": "MAXIFIED",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#F4F1E8",
+  "background_color": "#F4F1E8",
+  "display": "browser"
+}
