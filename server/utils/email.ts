@@ -1,4 +1,5 @@
 import type { WaitlistSource } from '#shared/schemas/waitlist'
+import { isWelcomeEmailConfigured } from '#shared/email'
 
 export type SubscriberPayload = {
   email: string
@@ -6,14 +7,27 @@ export type SubscriberPayload = {
   source: WaitlistSource
 }
 
+export type OutgoingEmail = {
+  from: string
+  to: string
+  replyTo: string
+  subject: string
+  html: string
+  text: string
+  /** Lets the provider drop a duplicate send if the same signup is processed twice. */
+  idempotencyKey: string
+}
+
 /**
- * Contract for an email marketing service. Implement `subscribe` against Resend,
- * Loops, Mailchimp or ConvertKit and register it in `resolveProvider` — nothing
- * else in the app needs to change.
+ * Contract for an email service. Implement `subscribe` (and `send`, if the service
+ * delivers individual emails) against Loops, Mailchimp or Kit and register it in
+ * `resolveProvider` — nothing else in the app needs to change.
  */
 export type EmailProvider = {
   name: string
   subscribe: (payload: SubscriberPayload) => Promise<void>
+  /** Without it, no welcome email is sent. */
+  send?: (email: OutgoingEmail) => Promise<void>
 }
 
 const noopProvider: EmailProvider = {
@@ -21,12 +35,13 @@ const noopProvider: EmailProvider = {
   async subscribe() {}
 }
 
-/** Signups wait on this request, so a slow Resend response must not hold them up for long. */
+/** Signups wait on these requests, so a slow Resend response must not hold them up for long. */
 const RESEND_TIMEOUT_MS = 5000
 
 /**
  * Adds the subscriber as a Resend contact in the configured segment
- * (`NUXT_EMAIL_AUDIENCE_ID` holds the segment ID — Resend renamed audiences to segments).
+ * (`NUXT_EMAIL_AUDIENCE_ID` holds the segment ID — Resend renamed audiences to segments)
+ * and sends individual emails through Resend's email API.
  */
 function createResendProvider(apiKey: string, segmentId: string): EmailProvider {
   const resend = $fetch.create({
@@ -35,11 +50,19 @@ function createResendProvider(apiKey: string, segmentId: string): EmailProvider 
     timeout: RESEND_TIMEOUT_MS
   })
 
+  function requireApiKey() {
+    if (!apiKey) {
+      throw new Error('NUXT_EMAIL_API_KEY must be set for Resend')
+    }
+  }
+
   return {
     name: 'resend',
     async subscribe({ email, firstName }) {
-      if (!apiKey || !segmentId) {
-        throw new Error('NUXT_EMAIL_API_KEY and NUXT_EMAIL_AUDIENCE_ID must both be set for Resend')
+      requireApiKey()
+
+      if (!segmentId) {
+        throw new Error('NUXT_EMAIL_AUDIENCE_ID must be set to a Resend segment ID')
       }
 
       try {
@@ -64,6 +87,23 @@ function createResendProvider(apiKey: string, segmentId: string): EmailProvider 
           throw error
         })
       }
+    },
+    async send({ from, to, replyTo, subject, html, text, idempotencyKey }) {
+      requireApiKey()
+
+      await resend('/emails', {
+        method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKey },
+        body: {
+          from,
+          to: [to],
+          reply_to: replyTo,
+          subject,
+          html,
+          text,
+          tags: [{ name: 'category', value: 'welcome' }]
+        }
+      })
     }
   }
 }
@@ -83,9 +123,45 @@ export function useEmailProvider() {
   return resolveProvider()
 }
 
+async function addContact(provider: EmailProvider, payload: SubscriberPayload, subscriberId: string) {
+  try {
+    await provider.subscribe(payload)
+    await markWaitlistSubscriberSynced(subscriberId)
+  } catch (error) {
+    console.error(`[maxi-fitness] failed to sync ${payload.email} with ${provider.name}`, error)
+  }
+}
+
+let warnedWelcomeDisabled = false
+
+async function sendWelcomeEmail(provider: EmailProvider, payload: SubscriberPayload, subscriberId: string) {
+  const { emailProvider, emailFrom, public: { contactEmail } } = useRuntimeConfig()
+
+  if (!provider.send || !isWelcomeEmailConfigured({ emailProvider, emailFrom, contactEmail })) {
+    if (!warnedWelcomeDisabled) {
+      warnedWelcomeDisabled = true
+      console.warn('[maxi-fitness] welcome emails are off: set NUXT_EMAIL_FROM and NUXT_PUBLIC_CONTACT_EMAIL to send them')
+    }
+    return
+  }
+
+  try {
+    await provider.send({
+      ...buildWelcomeEmail(payload),
+      from: emailFrom,
+      to: payload.email,
+      replyTo: contactEmail,
+      idempotencyKey: `welcome-${subscriberId}`
+    })
+  } catch (error) {
+    console.error(`[maxi-fitness] failed to send the welcome email to ${payload.email} via ${provider.name}`, error)
+  }
+}
+
 /**
- * Sync failures must never block a signup that is already persisted, so the
- * error is logged and swallowed.
+ * Adds a new subscriber to the email service and sends their welcome email, side by
+ * side. Failures must never block a signup that is already persisted, so each one is
+ * logged and swallowed.
  */
 export async function syncSubscriber(payload: SubscriberPayload, subscriberId: string) {
   const provider = useEmailProvider()
@@ -94,10 +170,8 @@ export async function syncSubscriber(payload: SubscriberPayload, subscriberId: s
     return
   }
 
-  try {
-    await provider.subscribe(payload)
-    await markWaitlistSubscriberSynced(subscriberId)
-  } catch (error) {
-    console.error(`[maxi-fitness] failed to sync ${payload.email} with ${provider.name}`, error)
-  }
+  await Promise.all([
+    addContact(provider, payload, subscriberId),
+    sendWelcomeEmail(provider, payload, subscriberId)
+  ])
 }

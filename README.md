@@ -156,6 +156,23 @@ email.
 Each signup becomes a contact (email and first name) in that segment. Someone who is already a
 contact is added to the segment instead. Use the test segment and your own address locally.
 
+#### Welcome email
+
+New subscribers also get a welcome email, built in
+[`server/utils/welcome-email.ts`](server/utils/welcome-email.ts) — edit the copy there. It is
+sent only when both of these are set as well:
+
+```bash
+NUXT_EMAIL_FROM="MAXIFIED <hello@your-domain.com>"  # on a domain verified in Resend
+NUXT_PUBLIC_CONTACT_EMAIL=you@your-domain.com        # replies go here
+```
+
+Replying is the email's way off the list ("reply and I'll remove you"), so the contact address
+must be an inbox you read. Repeat signups don't get a second email. The privacy policy's
+"Emails" section reads the same settings from `/api/email-setup` and describes whichever setup
+is live. To try it without emailing a real person, sign up as `delivered@resend.dev`, one of
+Resend's test addresses.
+
 ### Other services
 
 1. Implement `EmailProvider` for your service (Loops, Mailchimp, Kit).

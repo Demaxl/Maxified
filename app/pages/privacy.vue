@@ -2,6 +2,7 @@
 const { brand } = useAppConfig()
 const { analyticsId } = useRuntimeConfig().public
 const { contact } = useSiteLinks()
+const { data: emailSetup } = await useFetch('/api/email-setup')
 
 useSeoMeta({
   title: 'Privacy Policy',
@@ -9,8 +10,8 @@ useSeoMeta({
 })
 
 /**
- * Written against what the code actually does today. If you wire up analytics, an
- * email service or an unsubscribe link, update the matching section here as well.
+ * Written against what the code actually does today. The analytics and email sections
+ * follow the configuration; if you change what gets collected or sent, update them too.
  */
 const sections = computed(() => [
   {
@@ -43,9 +44,14 @@ const sections = computed(() => [
   },
   {
     title: 'Emails',
-    body: [
-      'No emails have been sent from this site yet, and it is not connected to an email delivery service. When launch emails do begin, your email address will be shared with the delivery provider for the sole purpose of sending them, and every email will include a way to unsubscribe.'
-    ]
+    body: emailSetup.value?.provider
+      ? [
+          `When you join the waitlist, your email address and first name (if you gave one) are shared with ${emailSetup.value.provider}, the email service this site uses, for the sole purpose of emailing you about this guide.`,
+          emailSetup.value.welcomeEmail
+            ? 'You get one welcome email straight away to confirm your signup. Reply to it and I\'ll remove you from the list. Every later email will also include a way to be removed.'
+            : 'No emails are sent automatically when you sign up. When launch emails begin, every email will include a way to be removed from the list.'
+        ]
+      : ['No emails have been sent from this site yet, and it is not connected to an email delivery service. When launch emails do begin, your email address will be shared with the delivery provider for the sole purpose of sending them, and every email will include a way to unsubscribe.']
   },
   {
     title: 'Analytics',

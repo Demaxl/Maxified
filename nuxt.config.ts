@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     emailProvider: '',
     emailApiKey: '',
     emailAudienceId: '',
+    emailFrom: '',
     public: {
       siteUrl: 'http://localhost:3000',
       // Unset until real accounts exist; empty values are hidden from the UI.
