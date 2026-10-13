@@ -2,17 +2,19 @@
 const { brand } = useAppConfig()
 const { siteUrl } = useRuntimeConfig().public
 
-const description = `${brand.name} is a downloadable fitness guide by Maxi: four years of training, nutrition, mistakes and lessons. It's in development — join the waitlist for early access and an exclusive launch discount.`
+// Search results show ~155 characters; social cards ~125, so the card gets its own shorter line.
+const description = `${brand.name} is a downloadable fitness guide by Maxi: four years of training, nutrition and lessons. Join the waitlist for early access and a launch discount.`
+const shareDescription = 'Four years of training, nutrition and lessons in one guide. Join the waitlist for early access and a launch discount.'
 
 useSeoMeta({
   title: brand.tagline,
   description,
   ogTitle: `${brand.name} — ${brand.tagline}`,
-  ogDescription: description,
+  ogDescription: shareDescription,
   ogType: 'website',
   ogUrl: siteUrl,
-  ogImage: `${siteUrl}/images/og.jpg`,
-  twitterCard: 'summary_large_image'
+  twitterTitle: `${brand.name} — ${brand.tagline}`,
+  twitterDescription: shareDescription
 })
 
 useHead({

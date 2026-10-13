@@ -2,6 +2,23 @@
 const { brand } = useAppConfig()
 const { siteUrl } = useRuntimeConfig().public
 
+/**
+ * Site-wide share card, so links to any page get the image. `og.jpg` must stay 1200 × 630
+ * and under 1 MB; bump `v` when replacing it, since platforms cache cards by URL.
+ */
+const shareImage = `${siteUrl}/images/og.jpg?v=2`
+
+useSeoMeta({
+  ogSiteName: brand.name,
+  ogImage: shareImage,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  ogImageType: 'image/jpeg',
+  ogImageAlt: `${brand.name} wordmark and "${brand.tagline}" beside Maxi, shirtless, in warm side light`,
+  twitterCard: 'summary_large_image',
+  twitterImage: shareImage
+})
+
 useHead({
   titleTemplate: title => (title ? `${title} — ${brand.name}` : brand.name),
   meta: [
