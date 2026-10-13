@@ -1,3 +1,4 @@
+import type { H3Event } from 'h3'
 import { surveyStepCount } from '#shared/survey'
 import type { SubscriberPayload } from './email'
 
@@ -21,9 +22,9 @@ function escapeHtml(value: string) {
  * (amount confirmed later) and occasional updates. Edit it here; plain text and HTML are
  * built from the same paragraphs so the two never drift apart.
  */
-export function buildWelcomeEmail({ email, firstName, source }: SubscriberPayload): WelcomeEmailContent {
+export function buildWelcomeEmail(event: H3Event, { email, firstName, source }: SubscriberPayload): WelcomeEmailContent {
   const { brand } = useAppConfig()
-  const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/$/, '')
+  const siteUrl = useRuntimeConfig(event).public.siteUrl.replace(/\/$/, '')
   const surveyUrl = `${siteUrl}/survey`
   const host = new URL(siteUrl).host
 

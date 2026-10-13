@@ -17,12 +17,12 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.131",
     "@iconify-json/simple-icons": "^1.2.95",
+    "@neondatabase/serverless": "^1.2.0",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/ui": "^4.11.1",
     "@vueuse/nuxt": "^15.0.0",
     "drizzle-orm": "^0.45.2",
     "nuxt": "^4.5.2",
-    "postgres": "^3.4.9",
     "tailwindcss": "^4.3.3",
     "zod": "^4.6.5"
   },
@@ -32,6 +32,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.10.0",
     "eslint-plugin-better-tailwindcss": "^4.7.0",
+    "postgres": "^3.4.9",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.11"
   },

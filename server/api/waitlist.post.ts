@@ -13,7 +13,7 @@ export default defineEventHandler(async (event): Promise<WaitlistResult> => {
   }
 
   if (result.status === 'created') {
-    await syncSubscriber(input, result.id)
+    await syncSubscriber(event, input, result.id)
   }
 
   return {

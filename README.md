@@ -11,8 +11,9 @@ survey (secondary). Neither one requires the other, and there are no accounts or
 | Framework | Nuxt 4 (Vue 3, Nitro) |
 | Styling | Tailwind CSS 4 + Nuxt UI |
 | Fonts | Barlow Condensed (headlines) + Inter (body) via `@nuxt/fonts` |
-| Database | Postgres via Drizzle ORM |
-| Rendering | `/` and `/privacy` are prerendered at build time; `/survey` is server-rendered |
+| Database | Neon Postgres via Drizzle ORM (Neon's HTTP driver) |
+| Rendering | `/`, `/survey` and `/privacy` are prerendered at build time; only `/api/*` runs on the server |
+| Hosting | Cloudflare Pages (any Nitro target works for the pages; the database driver needs Neon) |
 
 ## Getting started
 
@@ -28,8 +29,11 @@ the full flow locally. A warning is logged so this is never silently relied on i
 
 ### Connecting Postgres
 
-1. Create a database (Neon, Supabase, Render, or local Postgres).
-2. Put the connection string in `.env` as `DATABASE_URL`.
+1. Create a [Neon](https://neon.com) database. The app uses Neon's HTTP driver, which Cloudflare
+   needs (Workers can't keep a database connection open between requests), so other Postgres
+   hosts would need a different driver in `server/utils/db.ts`.
+2. Put the connection string in `.env` as `DATABASE_URL`. Use a separate Neon branch for
+   development so test signups never mix with real ones.
 3. Apply the schema:
 
 ```bash
@@ -192,15 +196,27 @@ script; leave it empty and no analytics script is added at all.
 
 ## Deploying
 
-Nitro builds for most platforms with no extra configuration:
+The site is set up for **Cloudflare Pages**, connected to this GitHub repo:
+
+- Framework preset **Nuxt.js**, build command `pnpm build`, output directory `dist`. Cloudflare's
+  build sets `CF_PAGES`, which Nitro detects to build for Pages.
+- Add every variable from `.env.example` under Settings → Variables and Secrets, for
+  Production. They're read both at build time (the prerendered pages) and per request (the API),
+  so redeploy after changing one.
+- Run `pnpm db:migrate` against the production database once before the first deploy.
+
+Server code must read configuration per request, with `useRuntimeConfig(event)` or
+`process.env` inside a handler: on Cloudflare, environment variables don't exist until a
+request arrives, so `useRuntimeConfig()` without the event returns the empty defaults.
+
+To try a Cloudflare build locally:
 
 ```bash
-pnpm build
-pnpm preview
+NITRO_PRESET=cloudflare_pages pnpm build
+npx wrangler pages dev dist
 ```
 
-Set `DATABASE_URL` and the `NUXT_PUBLIC_*` variables in your host's environment, and run
-`pnpm db:migrate` against the production database once before the first deploy.
+Delete any old `.output/` folder first: the prerenderer serves stale pages from it.
 
 ## Scripts
 

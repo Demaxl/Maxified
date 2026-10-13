@@ -32,6 +32,7 @@ export default defineEventHandler(async (event): Promise<SurveyResult> => {
 
   if (shouldJoinWaitlist && waitlist === 'created' && waitlistId) {
     await syncSubscriber(
+      event,
       { firstName: input.firstName, email: input.email!, source: 'survey' },
       waitlistId
     )

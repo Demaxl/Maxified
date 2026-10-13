@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
+import { neon } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/neon-http'
 import * as schema from '../database/schema'
 
 type Database = ReturnType<typeof createDatabase>
@@ -7,18 +7,21 @@ type Database = ReturnType<typeof createDatabase>
 let database: Database | undefined
 let warned = false
 
+/**
+ * Neon's HTTP driver sends each query as its own request, so no connection is held
+ * open between requests. Cloudflare Workers can't reuse a socket across requests,
+ * which rules out a pooled TCP client there. No interactive transactions over HTTP.
+ */
 function createDatabase(connectionString: string) {
-  const client = postgres(connectionString, {
-    max: 1,
-    idle_timeout: 20,
-    prepare: false
-  })
-
-  return drizzle(client, { schema })
+  return drizzle({ client: neon(connectionString), schema })
 }
 
+/**
+ * Read lazily, never at module load: on Cloudflare `process.env` is only filled in
+ * per request, and the event-less runtime config is frozen before that happens.
+ */
 function connectionString() {
-  return useRuntimeConfig().databaseUrl || process.env.DATABASE_URL || ''
+  return process.env.DATABASE_URL || useRuntimeConfig().databaseUrl || ''
 }
 
 export function isDatabaseConfigured() {

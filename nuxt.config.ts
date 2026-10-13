@@ -1,3 +1,5 @@
+const isCloudflareBuild = Boolean(process.env.CF_PAGES) || Boolean(process.env.NITRO_PRESET?.startsWith('cloudflare'))
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
@@ -38,10 +40,20 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { prerender: true },
-    '/privacy': { prerender: true }
+    '/privacy': { prerender: true },
+    // The survey runs entirely in the browser, so nothing needs rendering per request.
+    '/survey': { prerender: true }
   },
 
   compatibilityDate: '2026-06-30',
+
+  nitro: {
+    prerender: {
+      // Cloudflare serves `survey.html` at /survey; `survey/index.html` would redirect to /survey/.
+      // The Node server only looks for `index.html`, so keep folders for every other target.
+      autoSubfolderIndex: !isCloudflareBuild
+    }
+  },
 
   eslint: {
     config: {

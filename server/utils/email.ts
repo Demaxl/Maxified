@@ -1,3 +1,4 @@
+import type { H3Event } from 'h3'
 import type { WaitlistSource } from '#shared/schemas/waitlist'
 import { isWelcomeEmailConfigured } from '#shared/email'
 
@@ -108,8 +109,12 @@ function createResendProvider(apiKey: string, segmentId: string): EmailProvider 
   }
 }
 
-function resolveProvider(): EmailProvider {
-  const { emailProvider, emailApiKey, emailAudienceId } = useRuntimeConfig()
+/**
+ * Config is read per request: on Cloudflare, environment variables only exist once a
+ * request arrives, so `useRuntimeConfig()` without the event would never see them.
+ */
+export function useEmailProvider(event: H3Event): EmailProvider {
+  const { emailProvider, emailApiKey, emailAudienceId } = useRuntimeConfig(event)
 
   switch (emailProvider) {
     case 'resend':
@@ -117,10 +122,6 @@ function resolveProvider(): EmailProvider {
     default:
       return noopProvider
   }
-}
-
-export function useEmailProvider() {
-  return resolveProvider()
 }
 
 async function addContact(provider: EmailProvider, payload: SubscriberPayload, subscriberId: string) {
@@ -134,8 +135,8 @@ async function addContact(provider: EmailProvider, payload: SubscriberPayload, s
 
 let warnedWelcomeDisabled = false
 
-async function sendWelcomeEmail(provider: EmailProvider, payload: SubscriberPayload, subscriberId: string) {
-  const { emailProvider, emailFrom, public: { contactEmail } } = useRuntimeConfig()
+async function sendWelcomeEmail(event: H3Event, provider: EmailProvider, payload: SubscriberPayload, subscriberId: string) {
+  const { emailProvider, emailFrom, public: { contactEmail } } = useRuntimeConfig(event)
 
   if (!provider.send || !isWelcomeEmailConfigured({ emailProvider, emailFrom, contactEmail })) {
     if (!warnedWelcomeDisabled) {
@@ -147,7 +148,7 @@ async function sendWelcomeEmail(provider: EmailProvider, payload: SubscriberPayl
 
   try {
     await provider.send({
-      ...buildWelcomeEmail(payload),
+      ...buildWelcomeEmail(event, payload),
       from: emailFrom,
       to: payload.email,
       replyTo: contactEmail,
@@ -163,8 +164,8 @@ async function sendWelcomeEmail(provider: EmailProvider, payload: SubscriberPayl
  * side. Failures must never block a signup that is already persisted, so each one is
  * logged and swallowed.
  */
-export async function syncSubscriber(payload: SubscriberPayload, subscriberId: string) {
-  const provider = useEmailProvider()
+export async function syncSubscriber(event: H3Event, payload: SubscriberPayload, subscriberId: string) {
+  const provider = useEmailProvider(event)
 
   if (provider.name === 'none') {
     return
@@ -172,6 +173,6 @@ export async function syncSubscriber(payload: SubscriberPayload, subscriberId: s
 
   await Promise.all([
     addContact(provider, payload, subscriberId),
-    sendWelcomeEmail(provider, payload, subscriberId)
+    sendWelcomeEmail(event, provider, payload, subscriberId)
   ])
 }
