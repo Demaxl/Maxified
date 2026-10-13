@@ -70,7 +70,7 @@ ${paragraphs.map(paragraph => p(escapeHtml(paragraph))).join('\n')}
 ${p(survey.link
   ? `${escapeHtml(survey.text)} <a href="${escapeHtml(survey.link)}" style="color:#1c1917;font-weight:600;">Take the survey</a>`
   : escapeHtml(survey.text))}
-${p(`Speak soon,<br>${escapeHtml(brand.name)}`)}
+${p(`Stay active,<br>${escapeHtml('Maxi')}`)}
 </td></tr>
 <tr><td style="padding:20px 32px;border-top:1px solid #e7e0d5;font-size:13px;line-height:1.6;color:#57534e;">${escapeHtml(footer)}</td></tr>
 </table>
