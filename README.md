@@ -2,7 +2,8 @@
 
 A mobile-first Nuxt 4 landing page for an upcoming fitness guide. It has two independent
 conversions: joining the early-access waitlist (primary) and completing a 15-question research
-survey (secondary). Neither one requires the other, and there are no accounts or logins.
+survey (secondary). Neither one requires the other, and visitors never need an account; the only
+login is the password-protected admin dashboard at `/admin`.
 
 ## Stack
 
@@ -109,14 +110,22 @@ Two tables, defined in [`server/database/schema.ts`](server/database/schema.ts):
   Duplicate emails resolve to a friendly "you're already on the list" response rather than an
   error.
 - `survey_responses` — `answers` (JSONB keyed by question id), optional `email` and `waitlist_id`
-  so a response can be linked to a subscriber, plus timestamps.
+  so a response can be linked to a subscriber, `start_id` (the attempt it completes), plus
+  timestamps.
+- `survey_starts` — one row per survey attempt, recorded when the visitor answers the first
+  question. Completion rates are only known from the first row onward.
 
 ## API
 
 | Route | Purpose |
 | --- | --- |
 | `POST /api/waitlist` | `{ firstName, email, source }` → `{ ok, status: 'created' \| 'already_subscribed' }` |
-| `POST /api/survey` | `{ answers, joinWaitlist, firstName?, email? }` → `{ ok, waitlist }` |
+| `POST /api/survey` | `{ answers, joinWaitlist, firstName?, email?, startId? }` → `{ ok, waitlist, responseId }` |
+| `POST /api/survey/start` | `{ id }` → `{ ok }`. Records a survey attempt; repeats are ignored |
+| `/api/admin/*` | Dashboard data. Every route requires the admin session and answers `401` without it |
+
+`POST /api/waitlist` also accepts an optional `surveyResponseId`, which the survey's thank-you
+screen sends so the signup is linked to that response.
 
 Both validate with Zod schemas shared between client and server ([`shared/schemas/`](shared/schemas/)),
 so the browser shows the same messages the server would return. Validation failures respond `422`
@@ -194,6 +203,31 @@ a signup that is already stored in Postgres is never rolled back because a third
 to Plausible when it is loaded. Set `NUXT_PUBLIC_ANALYTICS_ID` to your Plausible domain to load the
 script; leave it empty and no analytics script is added at all.
 
+## Admin dashboard
+
+`/admin` is a private survey-insights dashboard: overview, audience, struggles and goals,
+content demand, and a searchable table of every response. Set two variables to enable it:
+
+```bash
+NUXT_ADMIN_PASSWORD=...                  # the only login
+NUXT_SESSION_PASSWORD=...                # 32+ random characters; encrypts the session cookie
+```
+
+Admin pages render in the browser only, send `noindex`, and get all data from `/api/admin/*`,
+which checks the session on every request. The dashboard never shows subscriber names or emails.
+
+- Charts count each question against the respondents who answered it. Multi-choice charts are
+  labelled, since their percentages can add up to more than 100%.
+- Day boundaries ("last 7 days", the daily chart, custom ranges) are Lagos calendar days.
+- Answers from the first, 8-question survey keep their own labels and appear as separate
+  "v1" charts; they are never merged into current questions with different wording.
+- Completion and survey-to-waitlist rates rely on the `survey_starts` tracking above and only
+  cover dates from when it began; before that they show as unavailable.
+- The content-priority suggestion is a weighted rule you can tune in
+  [`shared/analytics/priority.ts`](shared/analytics/priority.ts).
+
+The aggregation logic lives in `shared/analytics/` and is covered by `pnpm test`.
+
 ## Deploying
 
 The site is set up for **Cloudflare Pages**, connected to this GitHub repo:
@@ -226,4 +260,5 @@ Delete any old `.output/` folder first: the prerenderer serves stale pages from 
 | `pnpm build` / `pnpm preview` | Production build and local preview |
 | `pnpm lint` | ESLint (`--fix` to autofix) |
 | `pnpm typecheck` | `vue-tsc` over the whole project |
+| `pnpm test` | Vitest unit tests for the analytics aggregation |
 | `pnpm db:*` | Drizzle Kit migrate / generate / push / studio |

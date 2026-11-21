@@ -10,6 +10,9 @@ const STEP_LOCK_MS = 300
 type Draft = {
   answers: SurveyAnswers
   stepIndex: number
+  /** Identifies this attempt, so a reload mid-survey isn't counted as a second start. */
+  startId?: string
+  startRecorded?: boolean
 }
 
 export function useSurvey() {
@@ -24,6 +27,8 @@ export function useSurvey() {
   const showValidation = ref(false)
   /** Blocks a second activation from skipping a question before the step settles. */
   const isChangingStep = ref(false)
+  const startId = ref('')
+  const startRecorded = ref(false)
 
   let lockTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -77,6 +82,8 @@ export function useSurvey() {
       const draft = JSON.parse(raw) as Draft
 
       answers.value = sanitise(draft.answers)
+      startId.value = draft.startId ?? ''
+      startRecorded.value = Boolean(draft.startId && draft.startRecorded)
 
       // Resume no later than the first unanswered question, in case the draft's step
       // now sits past a question that was added or reset.
@@ -90,7 +97,14 @@ export function useSurvey() {
 
   function writeDraft() {
     try {
-      window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ answers: answers.value, stepIndex: stepIndex.value }))
+      const draft: Draft = {
+        answers: answers.value,
+        stepIndex: stepIndex.value,
+        startId: startId.value || undefined,
+        startRecorded: startRecorded.value
+      }
+
+      window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     } catch {
       // Storage may be unavailable; the draft is a convenience only.
     }
@@ -102,6 +116,21 @@ export function useSurvey() {
     } catch {
       // Nothing to clean up.
     }
+  }
+
+  /** A start counts once the first answer is given, so page views and bots don't inflate it. */
+  function recordStart() {
+    if (startRecorded.value) {
+      return
+    }
+
+    startId.value ||= crypto.randomUUID()
+    startRecorded.value = true
+    writeDraft()
+
+    $fetch('/api/survey/start', { method: 'POST', body: { id: startId.value } }).catch(() => {
+      // The submission records the start as well, so a lost request only delays it.
+    })
   }
 
   function back() {
@@ -126,6 +155,7 @@ export function useSurvey() {
     }
 
     showValidation.value = false
+    recordStart()
 
     if (!isLastStep.value) {
       lockStep()
@@ -153,7 +183,8 @@ export function useSurvey() {
           answers: answers.value,
           joinWaitlist: false,
           firstName: joined.value?.firstName,
-          email: joined.value?.email
+          email: joined.value?.email,
+          startId: startId.value || undefined
         }
       })
 

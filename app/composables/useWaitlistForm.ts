@@ -3,7 +3,7 @@ import type { WaitlistResult, WaitlistSource } from '#shared/schemas/waitlist'
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error'
 
-export function useWaitlistForm(source: WaitlistSource) {
+export function useWaitlistForm(source: WaitlistSource, surveyResponseId?: () => string | undefined) {
   const { track } = useAnalytics()
   const { remember } = useWaitlistState()
 
@@ -42,7 +42,8 @@ export function useWaitlistForm(source: WaitlistSource) {
     const parsed = waitlistInputSchema.safeParse({
       firstName: firstName.value,
       email: email.value,
-      source
+      source,
+      surveyResponseId: surveyResponseId?.()
     })
 
     if (!parsed.success) {

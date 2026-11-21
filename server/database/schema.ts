@@ -15,9 +15,22 @@ export const waitlistSubscribers = pgTable('waitlist_subscribers', {
   index('waitlist_subscribers_created_at_idx').on(table.createdAt)
 ])
 
+/**
+ * One row per survey attempt, recorded when the visitor answers the first question.
+ * Tracking began with this table: completion rates before its first row are unknown.
+ */
+export const surveyStarts = pgTable('survey_starts', {
+  id: uuid('id').primaryKey(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+}, table => [
+  index('survey_starts_created_at_idx').on(table.createdAt)
+])
+
 export const surveyResponses = pgTable('survey_responses', {
   id: uuid('id').primaryKey().defaultRandom(),
   waitlistId: uuid('waitlist_id').references(() => waitlistSubscribers.id, { onDelete: 'set null' }),
+  /** The attempt this response completes. Null for responses saved before tracking began. */
+  startId: uuid('start_id').references(() => surveyStarts.id, { onDelete: 'set null' }),
   email: text('email'),
   answers: jsonb('answers').notNull().default(sql`'{}'::jsonb`),
   completedAt: timestamp('completed_at', { withTimezone: true }).notNull().defaultNow(),
@@ -27,5 +40,6 @@ export const surveyResponses = pgTable('survey_responses', {
   index('survey_responses_created_at_idx').on(table.createdAt)
 ])
 
+export type SurveyStart = typeof surveyStarts.$inferSelect
 export type WaitlistSubscriber = typeof waitlistSubscribers.$inferSelect
 export type SurveyResponse = typeof surveyResponses.$inferSelect

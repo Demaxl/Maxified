@@ -6,7 +6,8 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxt/fonts',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    'nuxt-auth-utils'
   ],
 
   devtools: {
@@ -27,6 +28,13 @@ export default defineNuxtConfig({
     emailApiKey: '',
     emailAudienceId: '',
     emailFrom: '',
+    /** The single admin password for /admin. Leave empty to keep the dashboard locked. */
+    adminPassword: '',
+    session: {
+      name: 'maxified-admin',
+      password: '',
+      maxAge: 60 * 60 * 24 * 7
+    },
     public: {
       siteUrl: 'http://localhost:3000',
       // Unset until real accounts exist; empty values are hidden from the UI.
@@ -42,7 +50,10 @@ export default defineNuxtConfig({
     '/': { prerender: true },
     '/privacy': { prerender: true },
     // The survey runs entirely in the browser, so nothing needs rendering per request.
-    '/survey': { prerender: true }
+    '/survey': { prerender: true },
+    // Private, data-driven pages: rendered in the browser after the session check.
+    '/admin/**': { ssr: false, headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+    '/api/admin/**': { headers: { 'cache-control': 'no-store', 'X-Robots-Tag': 'noindex' } }
   },
 
   compatibilityDate: '2026-06-30',

@@ -2,7 +2,7 @@ import { waitlistInputSchema } from '#shared/schemas/waitlist'
 import type { WaitlistResult } from '#shared/schemas/waitlist'
 
 export default defineEventHandler(async (event): Promise<WaitlistResult> => {
-  const input = await readValidatedJson(event, waitlistInputSchema)
+  const { surveyResponseId, ...input } = await readValidatedJson(event, waitlistInputSchema)
 
   let result
 
@@ -10,6 +10,13 @@ export default defineEventHandler(async (event): Promise<WaitlistResult> => {
     result = await addWaitlistSubscriber(input)
   } catch (error) {
     throw persistenceError(error)
+  }
+
+  if (surveyResponseId) {
+    // Analytics only: the signup has already succeeded, so a failed link must not fail it.
+    await linkSurveyResponse(surveyResponseId, result.id).catch((error) => {
+      console.error('[maxi-fitness] could not link survey response', error)
+    })
   }
 
   if (result.status === 'created') {

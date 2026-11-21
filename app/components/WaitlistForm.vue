@@ -7,6 +7,8 @@ const props = withDefaults(defineProps<{
   showSurveyLink?: boolean
   /** Match the surface the form sits on; there is no card behind it. */
   tone?: 'light' | 'dark'
+  /** Ties the signup to the survey response it follows. */
+  surveyResponseId?: string
 }>(), {
   showSurveyLink: true,
   tone: 'light'
@@ -23,7 +25,7 @@ const {
   submit,
   reset,
   clearFieldError
-} = useWaitlistForm(props.source)
+} = useWaitlistForm(props.source, () => props.surveyResponseId)
 
 const emailField = useTemplateRef('emailField')
 const firstNameField = useTemplateRef('firstNameField')

@@ -25,7 +25,9 @@ export const firstNameField = z
 export const waitlistInputSchema = z.object({
   firstName: firstNameField,
   email: emailField,
-  source: z.enum(waitlistSources).default('waitlist_section')
+  source: z.enum(waitlistSources).default('waitlist_section'),
+  /** Set by the survey's thank-you screen so the signup can be tied to that response. */
+  surveyResponseId: z.uuid().optional()
 })
 
 export type WaitlistInput = z.input<typeof waitlistInputSchema>

@@ -8,6 +8,7 @@ export default defineEventHandler(async (event): Promise<SurveyResult> => {
 
   let waitlist: SurveyResult['waitlist'] = 'skipped'
   let waitlistId: string | undefined
+  let responseId: string
 
   try {
     if (shouldJoinWaitlist) {
@@ -21,11 +22,13 @@ export default defineEventHandler(async (event): Promise<SurveyResult> => {
       waitlistId = subscriber.id
     }
 
-    await saveSurveyResponse({
+    const saved = await saveSurveyResponse({
       answers: input.answers as SurveyAnswers,
       email: input.email,
-      waitlistId
+      waitlistId,
+      startId: input.startId
     })
+    responseId = saved.id
   } catch (error) {
     throw persistenceError(error)
   }
@@ -38,5 +41,5 @@ export default defineEventHandler(async (event): Promise<SurveyResult> => {
     )
   }
 
-  return { ok: true, waitlist }
+  return { ok: true, waitlist, responseId }
 })

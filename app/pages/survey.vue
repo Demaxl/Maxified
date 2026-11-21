@@ -16,6 +16,7 @@ const {
   announcement,
   showValidation,
   errorMessage,
+  result,
   next,
   back
 } = useSurvey()
@@ -166,6 +167,7 @@ onMounted(restore)
           </p>
           <WaitlistForm
             source="survey"
+            :survey-response-id="result?.responseId"
             :show-survey-link="false"
           />
         </div>

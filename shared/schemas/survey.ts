@@ -41,7 +41,8 @@ export const surveyInputSchema = z.object({
   answers: answersSchema,
   joinWaitlist: z.boolean().default(false),
   firstName: firstNameField,
-  email: emailField.optional()
+  email: emailField.optional(),
+  startId: z.uuid().optional()
 }).refine(
   input => !input.joinWaitlist || Boolean(input.email),
   { message: 'An email address is required to join the waitlist', path: ['email'] }
@@ -52,4 +53,9 @@ export type SurveyInput = z.input<typeof surveyInputSchema>
 export type SurveyResult = {
   ok: true
   waitlist: 'created' | 'already_subscribed' | 'skipped'
+  responseId: string
 }
+
+export const surveyStartSchema = z.object({
+  id: z.uuid()
+})
